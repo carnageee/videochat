@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VideoChat</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0f0f0f;
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top navigation bar */
+    nav {
+      background: #1a1a1a;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #2a2a2a;
+    }
+
+    nav h1 {
+      font-size: 1.4rem;
+      color: #e74c3c;
+      letter-spacing: 1px;
+    }
+
+    nav span {
+      color: #666;
+      font-size: 0.85rem;
+    }
+
+    /* Main content area */
+    .main {
+      flex: 1;
+      display: flex;
+      gap: 0;
+      overflow: hidden;
+    }
+
+    /* Video section */
+    .videos {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      background: #0a0a0a;
+      padding: 4px;
+    }
+
+    .video-wrapper {
+      position: relative;
+      flex: 1;
+      background: #1a1a1a;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .video-label {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background: rgba(0,0,0,0.6);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      color: #ccc;
+    }
+
+    .no-video {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      color: #444;
+    }
+
+    .no-video p { font-size: 0.9rem; margin-top: 0.5rem; }
+
+    /* Chat sidebar */
+    .sidebar {
+      width: 300px;
+      background: #1a1a1a;
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid #2a2a2a;
+    }
+
+    .chat-header {
+      padding: 1rem;
+      border-bottom: 1px solid #2a2a2a;
+      font-size: 0.9rem;
+      color: #888;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .message {
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      max-width: 85%;
+      line-height: 1.4;
+    }
+
+    .message.me {
+      background: #e74c3c;
+      align-self: flex-end;
+    }
+
+    .message.stranger {
+      background: #2a2a2a;
+      align-self: flex-start;
+    }
+
+    .message.system {
+      background: none;
+      color: #555;
+      font-size: 0.75rem;
+      align-self: center;
+      text-align: center;
+    }
+
+    .chat-input {
+      display: flex;
+      border-top: 1px solid #2a2a2a;
+      padding: 0.75rem;
+      gap: 0.5rem;
+    }
+
+    .chat-input input {
+      flex: 1;
+      background: #2a2a2a;
+      border: none;
+      border-radius: 6px;
+      padding: 0.6rem 0.8rem;
+      color: white;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .chat-input input::placeholder { color: #555; }
+
+    .chat-input button {
+      background: #e74c3c;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      padding: 0.6rem 1rem;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    /* Bottom controls */
+    .controls {
+      background: #1a1a1a;
+      border-top: 1px solid #2a2a2a;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    .controls button {
+      padding: 0.75rem 2rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: opacity 0.2s;
+    }
+
+    .controls button:hover { opacity: 0.85; }
+
+    #startBtn { background: #e74c3c; color: white; }
+    #nextBtn  { background: #2a2a2a; color: white; }
+    #nextBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .status {
+      color: #666;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <h1>⚡ VideoChat</h1>
+    <span>Connect with strangers instantly</span>
+  </nav>
+
+  <div class="main">
+
+    <!-- Videos -->
+    <div class="videos">
+      <div class="video-wrapper">
+        <video id="remoteVideo" autoplay playsinline></video>
+        <div class="no-video" id="remoteplaceholder">
+          <p>👤</p>
+          <p>Waiting for stranger...</p>
+        </div>
+        <div class="video-label">Stranger</div>
+      </div>
+      <div class="video-wrapper">
+        <video id="localVideo" autoplay muted playsinline></video>
+        <div class="no-video" id="localPlaceholder">
+          <p>📷</p>
+          <p>Click Start to enable camera</p>
+        </div>
+        <div class="video-label">You</div>
+      </div>
+    </div>
+
+    <!-- Chat sidebar -->
+    <div class="sidebar">
+      <div class="chat-header">💬 Chat</div>
+      <div class="chat-messages" id="chatMessages">
+        <div class="message system">Connect to start chatting</div>
+      </div>
+      <div class="chat-input">
+        <input type="text" id="chatInput" placeholder="Type a message..." disabled />
+        <button id="sendBtn" disabled>Send</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="controls">
+    <span class="status" id="status">Press Start to find a stranger</span>
+    <button id="startBtn">Start Chatting</button>
+    <button id="nextBtn" disabled>Next</button>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
