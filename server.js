@@ -11,14 +11,24 @@ const io = new Server(server, {
   }
 });
 
-const METERED_API_KEY = process.env.METERED_API_KEY || 'f_xPQX8pPRkPhdaZoW-HeOI8w4i0Mgufjh1-7q3420wFGN75';
-const METERED_APP_URL = 'https://empirevideo.metered.live/api/v1/turn/credentials';
+const XIRSYS_IDENT  = process.env.XIRSYS_IDENT  || 'eggybud';
+const XIRSYS_SECRET = process.env.XIRSYS_SECRET || '63f13030-35c7-11f1-9faa-0242ac130002';
+const XIRSYS_CHANNEL = 'empirevideo';
 
 async function getTurnCredentials() {
   try {
-    const res = await fetch(`${METERED_APP_URL}?apiKey=${METERED_API_KEY}`);
-    const iceServers = await res.json();
-    console.log('Fetched TURN credentials:', iceServers.length, 'servers');
+    const auth = Buffer.from(`${XIRSYS_IDENT}:${XIRSYS_SECRET}`).toString('base64');
+    const res = await fetch(`https://global.xirsys.net/_turn/${XIRSYS_CHANNEL}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Basic ${auth}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ format: 'urls' })
+    });
+    const data = await res.json();
+    const iceServers = data.v.iceServers;
+    console.log('Fetched Xirsys TURN credentials:', iceServers.length, 'servers');
     return iceServers;
   } catch (err) {
     console.error('Failed to fetch TURN credentials:', err);
