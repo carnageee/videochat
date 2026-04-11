@@ -27,7 +27,11 @@ async function getTurnCredentials() {
       body: JSON.stringify({ format: 'urls' })
     });
     const data = await res.json();
-    const iceServers = data.v.iceServers;
+    const raw = data.v.iceServers;
+    const iceServers = [
+      { urls: 'stun:stun.l.google.com:19302' },
+      ...(Array.isArray(raw) ? raw : [raw])
+    ];
     console.log('Fetched Xirsys TURN credentials:', iceServers.length, 'servers');
     return iceServers;
   } catch (err) {
