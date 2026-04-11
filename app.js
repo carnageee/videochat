@@ -13,25 +13,26 @@ let localStream    = null;
 let peerConnection = null;
 let myRoom         = null;
 let pendingCandidates = [];
+let remoteStream   = null;
 
 const config = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
     {
-      urls: 'turn:openrelay.metered.ca:80',
-      username: 'openrelayproject',
-      credential: 'openrelayproject'
+      urls: ['turn:numb.viagenie.ca'],
+      username: 'webrtc@live.com',
+      credential: 'muazkh'
     },
     {
-      urls: 'turn:openrelay.metered.ca:443',
-      username: 'openrelayproject',
-      credential: 'openrelayproject'
+      urls: ['turn:turn.bistri.com:80'],
+      username: 'homeo',
+      credential: 'homeo'
     },
     {
-      urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-      username: 'openrelayproject',
-      credential: 'openrelayproject'
+      urls: ['turn:turn.anyfirewall.com:443?transport=tcp'],
+      username: 'webrtc',
+      credential: 'webrtc'
     }
   ]
 };
@@ -52,11 +53,15 @@ function createPeerConnection(room) {
   });
 
   pc.ontrack = (event) => {
-    console.log('ontrack fired! streams:', event.streams, 'track:', event.track);
-    const stream = event.streams?.[0] ?? new MediaStream([event.track]);
-    remoteVideo.srcObject = stream;
-    remoteVideo.play().catch(e => console.error('Play error:', e));
-    document.getElementById('remoteplaceholder').style.display = 'none';
+    console.log('ontrack fired! kind:', event.track.kind);
+    if (!remoteStream) {
+      remoteStream = event.streams?.[0] || new MediaStream();
+      remoteVideo.srcObject = remoteStream;
+      document.getElementById('remoteplaceholder').style.display = 'none';
+    }
+    if (!event.streams?.[0]) {
+      remoteStream.addTrack(event.track);
+    }
   };
 
   pc.onicecandidate = (event) => {
@@ -114,6 +119,7 @@ nextBtn.addEventListener('click', () => {
   }
 
   remoteVideo.srcObject = null;
+  remoteStream = null;
   document.getElementById('remoteplaceholder').style.display = 'flex';
   myRoom = null;
   pendingCandidates = [];
@@ -204,6 +210,7 @@ socket.on('stranger_left', () => {
   }
 
   pendingCandidates = [];
+  remoteStream = null;
   remoteVideo.srcObject = null;
   document.getElementById('remoteplaceholder').style.display = 'flex';
   status.textContent = 'Stranger disconnected. Press Start to find a new one.';
