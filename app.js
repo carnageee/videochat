@@ -6,18 +6,18 @@ const status          = document.getElementById('status');
 const chatMessages    = document.getElementById('chatMessages');
 const chatInput       = document.getElementById('chatInput');
 const sendBtn         = document.getElementById('sendBtn');
-const remoteHolder    = document.getElementById('remoteplaceholder');
-const localPlaceholder  = document.getElementById('localPlaceholder');
-const remotePlaceholder = document.getElementById('remoteplaceholder');
 
-const socket = io('videochat-production-5929.up.railway.app');
+const socket = io('https://videochat-production-5929.up.railway.app');
 
 let localStream    = null;
 let peerConnection = null;
 let myRoom         = null;
 
 const config = {
-  iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+  iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' }
+  ]
 };
 
 function addMessage(text, type = 'system') {
@@ -28,27 +28,35 @@ function addMessage(text, type = 'system') {
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-async function startPeerConnection() {
-  peerConnection = new RTCPeerConnection(config);
+function createPeerConnection(room) {
+  const pc = new RTCPeerConnection(config);
 
   localStream.getTracks().forEach(track => {
-    peerConnection.addTrack(track, localStream);
+    pc.addTrack(track, localStream);
   });
 
-  peerConnection.ontrack = (event) => {
-    remoteVideo.srcObject = event.streams[0];
-    document.getElementById('remoteplaceholder').style.display = 'none';
-  };
-
-  peerConnection.onicecandidate = (event) => {
-    if (event.candidate) {
-      socket.emit('signal', { room: myRoom, data: { candidate: event.candidate } });
+  pc.ontrack = (event) => {
+    console.log('Got remote track!', event.streams);
+    if (event.streams && event.streams[0]) {
+      remoteVideo.srcObject = event.streams[0];
+      document.getElementById('remoteplaceholder').style.display = 'none';
     }
   };
 
-  const offer = await peerConnection.createOffer();
-  await peerConnection.setLocalDescription(offer);
-  socket.emit('signal', { room: myRoom, data: { offer } });
+  pc.onicecandidate = (event) => {
+    if (event.candidate) {
+      console.log('Sending ICE candidate');
+      socket.emit('signal', { room, data: { candidate: event.candidate } });
+    } else {
+      console.log('ICE gathering complete');
+    }
+  };
+
+  pc.onconnectionstatechange = () => {
+    console.log('Connection state:', pc.connectionState);
+  };
+
+  return pc;
 }
 
 // Start button
@@ -106,28 +114,15 @@ socket.on('paired', async ({ room, isInitiator }) => {
 
   addMessage('You are now connected to a stranger!', 'system');
 
-  peerConnection = new RTCPeerConnection(config);
+  peerConnection = createPeerConnection(room);
 
-  localStream.getTracks().forEach(track => {
-    peerConnection.addTrack(track, localStream);
-  });
-
-  peerConnection.ontrack = (event) => {
-    remoteVideo.srcObject = event.streams[0];
-    document.getElementById('remoteplaceholder').style.display = 'none';
-  };
-
-  peerConnection.onicecandidate = (event) => {
-    if (event.candidate) {
-      socket.emit('signal', { room: myRoom, data: { candidate: event.candidate } });
-    }
-  };
-
-  // Only the initiator creates the offer
   if (isInitiator) {
+    console.log('I am the initiator, creating offer...');
     const offer = await peerConnection.createOffer();
     await peerConnection.setLocalDescription(offer);
     socket.emit('signal', { room: myRoom, data: { offer } });
+  } else {
+    console.log('I am waiting for offer...');
   }
 });
 
@@ -137,13 +132,14 @@ socket.on('signal', async (data) => {
 
   try {
     if (data.offer) {
+      console.log('Received offer, creating answer...');
       await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
       const answer = await peerConnection.createAnswer();
       await peerConnection.setLocalDescription(answer);
       socket.emit('signal', { room: myRoom, data: { answer } });
 
     } else if (data.answer) {
-      // Only set answer if we're in the right state
+      console.log('Received answer, state:', peerConnection.signalingState);
       if (peerConnection.signalingState === 'have-local-offer') {
         await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
       }
