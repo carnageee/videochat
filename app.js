@@ -10,7 +10,7 @@ const remoteHolder    = document.getElementById('remoteplaceholder');
 const localPlaceholder  = document.getElementById('localPlaceholder');
 const remotePlaceholder = document.getElementById('remoteplaceholder');
 
-const socket = io('http://localhost:3000');
+const socket = io('videochat-production-5929.up.railway.app');
 
 let localStream    = null;
 let peerConnection = null;
