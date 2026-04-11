@@ -51,21 +51,32 @@ function createPeerConnection(room) {
     pc.addTrack(track, localStream);
   });
 
-pc.ontrack = (event) => {
-    console.log('Got remote track!', event.streams);
-    if (event.streams && event.streams[0]) {
-      remoteVideo.srcObject = event.streams[0];
-      remoteVideo.play().catch(e => console.error('Play error:', e));
-      document.getElementById('remoteplaceholder').style.display = 'none';
-    }
+  pc.ontrack = (event) => {
+    console.log('ontrack fired! streams:', event.streams, 'track:', event.track);
+    const stream = event.streams?.[0] ?? new MediaStream([event.track]);
+    remoteVideo.srcObject = stream;
+    remoteVideo.play().catch(e => console.error('Play error:', e));
+    document.getElementById('remoteplaceholder').style.display = 'none';
   };
 
   pc.onicecandidate = (event) => {
     if (event.candidate) {
-      console.log('Sending ICE candidate');
+      console.log('Sending ICE candidate:', event.candidate.type, event.candidate.protocol);
       socket.emit('signal', { room, data: { candidate: event.candidate } });
     } else {
       console.log('ICE gathering complete');
+    }
+  };
+
+  pc.oniceconnectionstatechange = () => {
+    console.log('ICE connection state:', pc.iceConnectionState);
+    status.textContent = 'ICE: ' + pc.iceConnectionState;
+    if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
+      status.textContent = 'Connected to a stranger!';
+    }
+    if (pc.iceConnectionState === 'failed') {
+      console.error('ICE failed — no valid network path found');
+      status.textContent = 'Connection failed. Try Next.';
     }
   };
 
@@ -192,6 +203,7 @@ socket.on('stranger_left', () => {
     peerConnection = null;
   }
 
+  pendingCandidates = [];
   remoteVideo.srcObject = null;
   document.getElementById('remoteplaceholder').style.display = 'flex';
   status.textContent = 'Stranger disconnected. Press Start to find a new one.';
