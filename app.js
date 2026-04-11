@@ -12,11 +12,27 @@ const socket = io('https://videochat-production-5929.up.railway.app');
 let localStream    = null;
 let peerConnection = null;
 let myRoom         = null;
+let pendingCandidates = [];
 
 const config = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' }
+    { urls: 'stun:stun1.l.google.com:19302' },
+    {
+      urls: 'turn:openrelay.metered.ca:80',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+    },
+    {
+      urls: 'turn:openrelay.metered.ca:443',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+    },
+    {
+      urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+    }
   ]
 };
 
@@ -89,6 +105,7 @@ nextBtn.addEventListener('click', () => {
   remoteVideo.srcObject = null;
   document.getElementById('remoteplaceholder').style.display = 'flex';
   myRoom = null;
+  pendingCandidates = [];
 
   chatInput.disabled = true;
   sendBtn.disabled   = true;
@@ -135,6 +152,11 @@ socket.on('signal', async (data) => {
     if (data.offer) {
       console.log('Received offer, creating answer...');
       await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+      // Flush any candidates that arrived before the offer
+      for (const c of pendingCandidates) {
+        await peerConnection.addIceCandidate(new RTCIceCandidate(c));
+      }
+      pendingCandidates = [];
       const answer = await peerConnection.createAnswer();
       await peerConnection.setLocalDescription(answer);
       socket.emit('signal', { room: myRoom, data: { answer } });
@@ -143,11 +165,19 @@ socket.on('signal', async (data) => {
       console.log('Received answer, state:', peerConnection.signalingState);
       if (peerConnection.signalingState === 'have-local-offer') {
         await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+        // Flush any candidates that arrived before the answer
+        for (const c of pendingCandidates) {
+          await peerConnection.addIceCandidate(new RTCIceCandidate(c));
+        }
+        pendingCandidates = [];
       }
 
     } else if (data.candidate) {
       if (peerConnection.remoteDescription) {
         await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+      } else {
+        // Queue candidate until remote description is set
+        pendingCandidates.push(data.candidate);
       }
     }
   } catch (err) {
