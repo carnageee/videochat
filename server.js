@@ -26,7 +26,8 @@ io.on('connection', (socket) => {
     waitingUser.join(room);
 
     // Tell both users they are paired
-    io.to(room).emit('paired', { room });
+    waitingUser.emit('paired', { room, isInitiator: true });
+    socket.emit('paired', { room, isInitiator: false });
 
     console.log('Paired:', room);
     waitingUser = null;

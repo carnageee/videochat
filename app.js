@@ -96,7 +96,7 @@ socket.on('waiting', () => {
 });
 
 // Paired with someone
-socket.on('paired', async ({ room }) => {
+socket.on('paired', async ({ room, isInitiator }) => {
   myRoom = room;
   status.textContent = 'Connected to a stranger!';
   startBtn.textContent = 'Connected';
@@ -105,24 +105,56 @@ socket.on('paired', async ({ room }) => {
   sendBtn.disabled   = false;
 
   addMessage('You are now connected to a stranger!', 'system');
-  await startPeerConnection();
+
+  peerConnection = new RTCPeerConnection(config);
+
+  localStream.getTracks().forEach(track => {
+    peerConnection.addTrack(track, localStream);
+  });
+
+  peerConnection.ontrack = (event) => {
+    remoteVideo.srcObject = event.streams[0];
+    document.getElementById('remoteplaceholder').style.display = 'none';
+  };
+
+  peerConnection.onicecandidate = (event) => {
+    if (event.candidate) {
+      socket.emit('signal', { room: myRoom, data: { candidate: event.candidate } });
+    }
+  };
+
+  // Only the initiator creates the offer
+  if (isInitiator) {
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
+    socket.emit('signal', { room: myRoom, data: { offer } });
+  }
 });
 
 // Handle signals
 socket.on('signal', async (data) => {
   if (!peerConnection) return;
 
-  if (data.offer) {
-    await peerConnection.setRemoteDescription(data.offer);
-    const answer = await peerConnection.createAnswer();
-    await peerConnection.setLocalDescription(answer);
-    socket.emit('signal', { room: myRoom, data: { answer } });
+  try {
+    if (data.offer) {
+      await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+      const answer = await peerConnection.createAnswer();
+      await peerConnection.setLocalDescription(answer);
+      socket.emit('signal', { room: myRoom, data: { answer } });
 
-  } else if (data.answer) {
-    await peerConnection.setRemoteDescription(data.answer);
+    } else if (data.answer) {
+      // Only set answer if we're in the right state
+      if (peerConnection.signalingState === 'have-local-offer') {
+        await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+      }
 
-  } else if (data.candidate) {
-    await peerConnection.addIceCandidate(data.candidate);
+    } else if (data.candidate) {
+      if (peerConnection.remoteDescription) {
+        await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+      }
+    }
+  } catch (err) {
+    console.error('Signal error:', err);
   }
 });
 
