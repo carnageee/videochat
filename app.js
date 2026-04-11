@@ -35,10 +35,11 @@ function createPeerConnection(room) {
     pc.addTrack(track, localStream);
   });
 
-  pc.ontrack = (event) => {
+pc.ontrack = (event) => {
     console.log('Got remote track!', event.streams);
     if (event.streams && event.streams[0]) {
       remoteVideo.srcObject = event.streams[0];
+      remoteVideo.play().catch(e => console.error('Play error:', e));
       document.getElementById('remoteplaceholder').style.display = 'none';
     }
   };

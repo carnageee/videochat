@@ -16,7 +16,6 @@
       flex-direction: column;
     }
 
-    /* Top navigation bar */
     nav {
       background: #1a1a1a;
       padding: 1rem 2rem;
@@ -37,15 +36,12 @@
       font-size: 0.85rem;
     }
 
-    /* Main content area */
     .main {
       flex: 1;
       display: flex;
-      gap: 0;
       overflow: hidden;
     }
 
-    /* Video section */
     .videos {
       flex: 1;
       display: flex;
@@ -67,6 +63,7 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
+      display: block;
     }
 
     .video-label {
@@ -78,6 +75,7 @@
       border-radius: 20px;
       font-size: 0.75rem;
       color: #ccc;
+      z-index: 2;
     }
 
     .no-video {
@@ -87,11 +85,14 @@
       transform: translate(-50%, -50%);
       text-align: center;
       color: #444;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .no-video p { font-size: 0.9rem; margin-top: 0.5rem; }
 
-    /* Chat sidebar */
     .sidebar {
       width: 300px;
       background: #1a1a1a;
@@ -172,7 +173,6 @@
       font-size: 0.85rem;
     }
 
-    /* Bottom controls */
     .controls {
       background: #1a1a1a;
       border-top: 1px solid #2a2a2a;
@@ -214,7 +214,6 @@
 
   <div class="main">
 
-    <!-- Videos -->
     <div class="videos">
       <div class="video-wrapper">
         <video id="remoteVideo" autoplay playsinline></video>
@@ -234,7 +233,6 @@
       </div>
     </div>
 
-    <!-- Chat sidebar -->
     <div class="sidebar">
       <div class="chat-header">💬 Chat</div>
       <div class="chat-messages" id="chatMessages">
