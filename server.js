@@ -83,6 +83,11 @@ socket.on('disconnect', () => {
 
 });
 
+app.get('/ice', async (req, res) => {
+  const servers = await getTurnCredentials();
+  res.json(servers);
+});
+
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log('Server running on port ' + PORT);

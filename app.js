@@ -126,7 +126,12 @@ socket.on('waiting', () => {
 // Paired with someone
 socket.on('paired', async ({ room, isInitiator, iceServers }) => {
   myRoom = room;
-  if (iceServers) config = { iceServers };
+  if (iceServers) {
+    config = { iceServers };
+    console.log('ICE servers from server:', JSON.stringify(iceServers, null, 2));
+  } else {
+    console.warn('No ICE servers received from server, using fallback STUN only');
+  }
   status.textContent = 'Connected to a stranger!';
   startBtn.textContent = 'Connected';
   nextBtn.disabled = false;
