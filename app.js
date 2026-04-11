@@ -15,25 +15,10 @@ let myRoom         = null;
 let pendingCandidates = [];
 let remoteStream   = null;
 
-const config = {
+let config = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' },
-    {
-      urls: ['turn:numb.viagenie.ca'],
-      username: 'webrtc@live.com',
-      credential: 'muazkh'
-    },
-    {
-      urls: ['turn:turn.bistri.com:80'],
-      username: 'homeo',
-      credential: 'homeo'
-    },
-    {
-      urls: ['turn:turn.anyfirewall.com:443?transport=tcp'],
-      username: 'webrtc',
-      credential: 'webrtc'
-    }
+    { urls: 'stun:stun1.l.google.com:19302' }
   ]
 };
 
@@ -139,8 +124,9 @@ socket.on('waiting', () => {
 });
 
 // Paired with someone
-socket.on('paired', async ({ room, isInitiator }) => {
+socket.on('paired', async ({ room, isInitiator, iceServers }) => {
   myRoom = room;
+  if (iceServers) config = { iceServers };
   status.textContent = 'Connected to a stranger!';
   startBtn.textContent = 'Connected';
   nextBtn.disabled = false;

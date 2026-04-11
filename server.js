@@ -11,12 +11,30 @@ const io = new Server(server, {
   }
 });
 
+const METERED_API_KEY = process.env.METERED_API_KEY || 'f_xPQX8pPRkPhdaZoW-HeOI8w4i0Mgufjh1-7q3420wFGN75';
+const METERED_APP_URL = 'https://empirevideo.metered.live/api/v1/turn/credentials';
+
+async function getTurnCredentials() {
+  try {
+    const res = await fetch(`${METERED_APP_URL}?apiKey=${METERED_API_KEY}`);
+    const iceServers = await res.json();
+    console.log('Fetched TURN credentials:', iceServers.length, 'servers');
+    return iceServers;
+  } catch (err) {
+    console.error('Failed to fetch TURN credentials:', err);
+    return [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' }
+    ];
+  }
+}
+
 let waitingUser = null;
 
 io.on('connection', (socket) => {
   console.log('Someone connected:', socket.id);
 
-  socket.on('looking', () => {
+  socket.on('looking', async () => {
   // Try to pair this user with someone waiting
   if (waitingUser) {
     // There's someone waiting — pair them together
@@ -25,9 +43,11 @@ io.on('connection', (socket) => {
     socket.join(room);
     waitingUser.join(room);
 
+    const iceServers = await getTurnCredentials();
+
     // Tell both users they are paired
-    waitingUser.emit('paired', { room, isInitiator: true });
-    socket.emit('paired', { room, isInitiator: false });
+    waitingUser.emit('paired', { room, isInitiator: true, iceServers });
+    socket.emit('paired', { room, isInitiator: false, iceServers });
 
     console.log('Paired:', room);
     waitingUser = null;
