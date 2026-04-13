@@ -6,7 +6,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: 'https://empire-ahb.pages.dev',
+    origin: 'https://carnageee.github.io',
     methods: ['GET', 'POST']
   }
 });
