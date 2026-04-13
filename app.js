@@ -3,6 +3,7 @@ const remoteVideo     = document.getElementById('remoteVideo');
 const startBtn        = document.getElementById('startBtn');
 const nextBtn         = document.getElementById('nextBtn');
 const disconnectBtn   = document.getElementById('disconnectBtn');
+const reportBtn       = document.getElementById('reportBtn');
 const status          = document.getElementById('status');
 const chatMessages    = document.getElementById('chatMessages');
 const chatInput       = document.getElementById('chatInput');
@@ -115,13 +116,14 @@ function resetToIdle() {
   document.getElementById('remoteplaceholder').style.display = 'flex';
   document.getElementById('localPlaceholder').style.display = 'flex';
 
-  chatInput.disabled    = true;
-  sendBtn.disabled      = true;
-  nextBtn.disabled      = true;
+  chatInput.disabled     = true;
+  sendBtn.disabled       = true;
+  nextBtn.disabled       = true;
   disconnectBtn.disabled = true;
-  startBtn.disabled     = false;
-  startBtn.textContent  = 'Start';
-  status.textContent    = 'Press Start to find a stranger';
+  reportBtn.disabled     = true;
+  startBtn.disabled      = false;
+  startBtn.textContent   = 'Start';
+  status.textContent     = 'Press Start to find a stranger';
 }
 
 // Next button
@@ -137,11 +139,12 @@ nextBtn.addEventListener('click', () => {
   myRoom = null;
   pendingCandidates = [];
 
-  chatInput.disabled    = true;
-  sendBtn.disabled      = true;
-  nextBtn.disabled      = true;
+  chatInput.disabled     = true;
+  sendBtn.disabled       = true;
+  nextBtn.disabled       = true;
   disconnectBtn.disabled = true;
-  status.textContent    = 'Looking for a new stranger...';
+  reportBtn.disabled     = true;
+  status.textContent     = 'Looking for a new stranger...';
 
   addMessage('You skipped to the next stranger.', 'system');
   socket.emit('looking');
@@ -169,11 +172,11 @@ socket.on('paired', async ({ room, isInitiator, iceServers }) => {
   }
   status.textContent = 'Connected to a stranger!';
   startBtn.textContent = 'Connected';
-  nextBtn.disabled = false;
-  chatInput.disabled = false;
-  sendBtn.disabled   = false;
-
+  nextBtn.disabled       = false;
+  chatInput.disabled     = false;
+  sendBtn.disabled       = false;
   disconnectBtn.disabled = false;
+  reportBtn.disabled     = false;
   addMessage('You are now connected to a stranger!', 'system');
 
   peerConnection = createPeerConnection(room);
@@ -243,12 +246,38 @@ socket.on('stranger_left', () => {
   status.textContent = 'Stranger disconnected. Press Start to find a new one.';
   startBtn.textContent = 'Start';
   startBtn.disabled    = false;
-  nextBtn.disabled     = true;
+  nextBtn.disabled       = true;
   disconnectBtn.disabled = true;
-  chatInput.disabled   = true;
-  sendBtn.disabled     = true;
+  reportBtn.disabled     = true;
+  chatInput.disabled     = true;
+  sendBtn.disabled       = true;
 
   addMessage('Stranger has disconnected.', 'system');
+});
+
+// Report button
+reportBtn.addEventListener('click', () => {
+  if (!myRoom) return;
+  socket.emit('report', { room: myRoom });
+  addMessage('You reported this user. Skipping...', 'system');
+  reportBtn.disabled = true;
+
+  if (peerConnection) {
+    peerConnection.close();
+    peerConnection = null;
+  }
+  remoteVideo.srcObject = null;
+  remoteStream = null;
+  document.getElementById('remoteplaceholder').style.display = 'flex';
+  myRoom = null;
+  pendingCandidates = [];
+
+  chatInput.disabled     = true;
+  sendBtn.disabled       = true;
+  nextBtn.disabled       = true;
+  disconnectBtn.disabled = true;
+  status.textContent     = 'Looking for a new stranger...';
+  socket.emit('looking');
 });
 
 // Send chat message

@@ -420,6 +420,21 @@
       color: var(--muted);
       white-space: nowrap;
     }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.75rem;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: #a78bfa; }
   </style>
 </head>
 <body>
@@ -441,7 +456,11 @@
       <div class="brand-icon">🎥</div>
       <h1>Empire Video</h1>
     </div>
-    <span class="nav-tag">Connect with strangers</span>
+    <div class="nav-links">
+      <a href="tos.html" target="_blank">Terms</a>
+      <a href="privacy.html" target="_blank">Privacy</a>
+      <span class="nav-tag">Connect with strangers</span>
+    </div>
   </nav>
 
   <div class="main">
@@ -473,6 +492,11 @@
       <div class="chat-header">Live Chat</div>
       <div class="chat-messages" id="chatMessages">
         <div class="message system">Connect to start chatting</div>
+      </div>
+      <div style="padding: 0.5rem 0.75rem; border-top: 1px solid var(--border);">
+        <button id="reportBtn" disabled style="width:100%; padding:0.55rem; background:rgba(234,179,8,0.12); color:#facc15; border:1px solid rgba(234,179,8,0.25); border-radius:10px; font-size:0.82rem; font-weight:600; font-family:inherit; cursor:pointer; transition:all 0.2s;">
+          Report User
+        </button>
       </div>
       <div class="chat-input">
         <input type="text" id="chatInput" placeholder="Type a message..." disabled />

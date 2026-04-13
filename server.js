@@ -11,8 +11,8 @@ const io = new Server(server, {
   }
 });
 
-const XIRSYS_IDENT  = process.env.XIRSYS_IDENT  || 'eggybud';
-const XIRSYS_SECRET = process.env.XIRSYS_SECRET || '63f13030-35c7-11f1-9faa-0242ac130002';
+const XIRSYS_IDENT  = process.env.XIRSYS_IDENT;
+const XIRSYS_SECRET = process.env.XIRSYS_SECRET;
 const XIRSYS_CHANNEL = 'empirevideo';
 
 async function getTurnCredentials() {
@@ -43,35 +43,36 @@ async function getTurnCredentials() {
   }
 }
 
-let waitingUser = null;
+const waitingQueue = [];
 
 io.on('connection', (socket) => {
   console.log('Someone connected:', socket.id);
 
   socket.on('looking', async () => {
-  // Try to pair this user with someone waiting
-  if (waitingUser) {
-    // There's someone waiting — pair them together
-    const room = waitingUser.id + '#' + socket.id;
+    // Remove self from queue in case of re-queue (e.g. Next button)
+    const selfIndex = waitingQueue.indexOf(socket);
+    if (selfIndex !== -1) waitingQueue.splice(selfIndex, 1);
 
-    socket.join(room);
-    waitingUser.join(room);
+    // Try to pair with the first person in the queue
+    if (waitingQueue.length > 0) {
+      const partner = waitingQueue.shift();
+      const room = partner.id + '#' + socket.id;
 
-    const iceServers = await getTurnCredentials();
+      socket.join(room);
+      partner.join(room);
 
-    // Tell both users they are paired
-    waitingUser.emit('paired', { room, isInitiator: true, iceServers });
-    socket.emit('paired', { room, isInitiator: false, iceServers });
+      const iceServers = await getTurnCredentials();
 
-    console.log('Paired:', room);
-    waitingUser = null;
+      partner.emit('paired', { room, isInitiator: true, iceServers });
+      socket.emit('paired', { room, isInitiator: false, iceServers });
 
-  } else {
-    // Nobody waiting yet — this user waits
-    waitingUser = socket;
-    socket.emit('waiting');
-    console.log('Waiting for a partner...');
-  }
+      console.log('Paired:', room);
+    } else {
+      // Nobody waiting yet — join the queue
+      waitingQueue.push(socket);
+      socket.emit('waiting');
+      console.log('Waiting for a partner... Queue size:', waitingQueue.length);
+    }
   }); // end of looking event
 
   // Relay signaling messages between the two users
@@ -79,15 +80,17 @@ io.on('connection', (socket) => {
     socket.to(room).emit('signal', data);
   });
 
-  // Handle disconnect
-  // Relay chat messages
   socket.on('chat', ({ room, text }) => {
     socket.to(room).emit('chat', { text });
   });
-socket.on('disconnect', () => {
-    if (waitingUser === socket) {
-      waitingUser = null;
-    }
+
+  socket.on('report', ({ room }) => {
+    console.log(`REPORT filed — room: ${room}, reporter: ${socket.id}, time: ${new Date().toISOString()}`);
+  });
+
+  socket.on('disconnect', () => {
+    const idx = waitingQueue.indexOf(socket);
+    if (idx !== -1) waitingQueue.splice(idx, 1);
     // Notify the other person in the room
     socket.rooms.forEach(room => {
       socket.to(room).emit('stranger_left');
