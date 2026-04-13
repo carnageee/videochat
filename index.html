@@ -373,6 +373,7 @@
       justify-content: center;
       gap: 0.75rem;
       flex-shrink: 0;
+      flex-wrap: wrap;
     }
 
     .controls button {
@@ -409,6 +410,19 @@
 
     #disconnectBtn:hover:not(:disabled) {
       background: rgba(239, 68, 68, 0.25);
+    }
+
+    .report-row {
+      flex-basis: 100%;
+      background: rgba(234, 179, 8, 0.12);
+      color: #facc15;
+      border: 1px solid rgba(234, 179, 8, 0.25) !important;
+      padding: 0.55rem !important;
+      font-size: 0.82rem !important;
+    }
+
+    .report-row:hover:not(:disabled) {
+      background: rgba(234, 179, 8, 0.22) !important;
     }
 
     .status-pill {
@@ -479,23 +493,6 @@
       .chat-messages {
         flex: 1;
         padding: 0.5rem 0.75rem;
-      }
-
-      .sidebar > div[style] {
-        display: flex;
-        align-items: center;
-        padding: 0.5rem;
-        border-top: none;
-        border-left: 1px solid var(--border);
-      }
-
-      .sidebar > div[style] button {
-        writing-mode: vertical-lr;
-        text-orientation: mixed;
-        padding: 0.75rem 0.4rem;
-        height: 100%;
-        width: auto;
-        border-radius: 10px;
       }
 
       .chat-input {
@@ -587,11 +584,6 @@
       <div class="chat-messages" id="chatMessages">
         <div class="message system">Connect to start chatting</div>
       </div>
-      <div style="padding: 0.5rem 0.75rem; border-top: 1px solid var(--border);">
-        <button id="reportBtn" disabled style="width:100%; padding:0.55rem; background:rgba(234,179,8,0.12); color:#facc15; border:1px solid rgba(234,179,8,0.25); border-radius:10px; font-size:0.82rem; font-weight:600; font-family:inherit; cursor:pointer; transition:all 0.2s;">
-          Report User
-        </button>
-      </div>
       <div class="chat-input">
         <input type="text" id="chatInput" placeholder="Type a message..." disabled />
         <button id="sendBtn" disabled>Send</button>
@@ -605,6 +597,7 @@
     <button id="startBtn">Start</button>
     <button id="nextBtn" disabled>Next</button>
     <button id="disconnectBtn" disabled>Disconnect</button>
+    <button id="reportBtn" disabled class="report-row">Report User</button>
   </div>
 
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>

@@ -299,3 +299,11 @@ chatInput.addEventListener('keydown', (e) => {
 socket.on('chat', ({ text }) => {
   addMessage(text, 'stranger');
 });
+
+// If socket reconnects (e.g. phone woke from sleep), reset state so user can re-pair
+socket.on('connect', () => {
+  if (myRoom) {
+    resetToIdle();
+    addMessage('Connection was lost and restored. Press Start to reconnect.', 'system');
+  }
+});
