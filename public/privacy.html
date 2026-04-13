@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Privacy Policy — Empire Video</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --purple: #7c3aed;
+      --purple-light: #8b5cf6;
+      --purple-dark: #6d28d9;
+      --purple-glow: rgba(124, 58, 237, 0.4);
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --surface2: #1c1c26;
+      --border: rgba(255,255,255,0.07);
+      --text: #f1f0f5;
+      --muted: #6b6880;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      min-height: 100vh;
+    }
+
+    nav {
+      background: var(--surface);
+      padding: 0.85rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      text-decoration: none;
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--purple-light), var(--purple-dark));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+
+    .nav-brand h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #a78bfa, #7c3aed);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .back-link {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      border: 1px solid var(--border);
+      padding: 0.4rem 1rem;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .back-link:hover { color: var(--text); border-color: var(--purple); }
+
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem;
+    }
+
+    h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #a78bfa, #7c3aed);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+
+    .last-updated {
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-bottom: 2.5rem;
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #a78bfa;
+      margin: 2rem 0 0.6rem;
+    }
+
+    p, li {
+      color: #b8b5c8;
+      font-size: 0.92rem;
+      line-height: 1.75;
+    }
+
+    ul {
+      padding-left: 1.4rem;
+      margin-top: 0.4rem;
+    }
+
+    li { margin-bottom: 0.3rem; }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2rem 0;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a class="nav-brand" href="index.html">
+      <div class="brand-icon">🎥</div>
+      <h1>Empire Video</h1>
+    </a>
+    <a class="back-link" href="index.html">← Back</a>
+  </nav>
+
+  <div class="container">
+    <h2>Privacy Policy</h2>
+    <p class="last-updated">Last updated: April 13, 2025</p>
+
+    <p>This Privacy Policy explains what information Empire Video ("the Service") collects, how it is used, and your rights regarding that information.</p>
+
+    <h3>1. Information We Collect</h3>
+    <p>We collect minimal data to operate the Service:</p>
+    <ul>
+      <li><strong>IP address</strong> — collected automatically when you connect to our server, used for abuse prevention and server diagnostics</li>
+      <li><strong>Socket connection data</strong> — temporary session identifiers used solely to match and connect users; discarded when your session ends</li>
+      <li><strong>Report logs</strong> — if you submit a report, we log the session room ID and a timestamp for moderation purposes</li>
+    </ul>
+
+    <h3>2. What We Do NOT Collect</h3>
+    <ul>
+      <li>We do <strong>not</strong> record, store, or retain any video or audio from your sessions</li>
+      <li>We do <strong>not</strong> store chat messages</li>
+      <li>We do <strong>not</strong> require account registration or collect your name, email, or any personal identifiers</li>
+      <li>We do <strong>not</strong> use cookies for tracking</li>
+    </ul>
+
+    <h3>3. How We Use Your Information</h3>
+    <ul>
+      <li>To match you with a random stranger for a video session</li>
+      <li>To relay WebRTC signaling data between users (offer, answer, ICE candidates)</li>
+      <li>To investigate and act on abuse reports</li>
+      <li>To diagnose server errors and maintain uptime</li>
+    </ul>
+
+    <h3>4. Third-Party Services</h3>
+    <p>We use the following third-party services which may process your connection data:</p>
+    <ul>
+      <li><strong>Xirsys</strong> — provides TURN/STUN relay servers to facilitate peer-to-peer connections. Your IP may be visible to Xirsys during connection negotiation.</li>
+      <li><strong>Railway</strong> — our backend hosting provider. Server logs including IP addresses are stored per Railway's own privacy policy.</li>
+      <li><strong>Netlify</strong> — our frontend hosting provider.</li>
+    </ul>
+
+    <h3>5. Data Retention</h3>
+    <p>Session data (socket IDs, room pairings) is held in memory only and is deleted immediately when a session ends or the server restarts. Report logs may be retained for up to 30 days for moderation review.</p>
+
+    <h3>6. Children's Privacy</h3>
+    <p>Empire Video is strictly for users aged 18 and over. We do not knowingly collect any information from minors. If you believe a minor has accessed the Service, please contact us immediately.</p>
+
+    <h3>7. Your Rights</h3>
+    <p>Since we do not collect personally identifiable information, there is generally no personal data to access, correct, or delete. If you have concerns about data tied to your IP address, contact us and we will address it promptly.</p>
+
+    <h3>8. Changes to This Policy</h3>
+    <p>We may update this Privacy Policy from time to time. Continued use of the Service after changes constitutes acceptance of the updated policy.</p>
+
+    <hr class="divider" />
+    <p>If you have questions about this Privacy Policy, please contact us at <a href="mailto:jizzbuty@gmail.com" style="color:#a78bfa;">jizzbuty@gmail.com</a></p>
+  </div>
+
+</body>
+</html>
