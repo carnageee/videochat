@@ -3,7 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Empire Video</title>
+  <title>Empire Video Chat</title>
+  <meta property="og:title" content="Empire Video Chat" />
+  <meta property="og:description" content="Connect with random strangers via live video chat." />
+  <meta property="og:image" content="https://carnageee.github.io/videochat/logo.png" />
+  <meta property="og:url" content="https://carnageee.github.io/videochat/" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://carnageee.github.io/videochat/logo.png" />
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
@@ -77,8 +84,12 @@
     .age-card .close-btn:hover { color: var(--text); border-color: var(--purple); }
 
     .age-card .logo-icon {
-      font-size: 3rem;
       margin-bottom: 1rem;
+    }
+
+    .age-card .logo-icon img {
+      height: 80px;
+      width: auto;
     }
 
     .age-card h2 {
@@ -143,14 +154,15 @@
     }
 
     .nav-brand .brand-icon {
-      width: 32px;
-      height: 32px;
-      background: linear-gradient(135deg, var(--purple-light), var(--purple-dark));
-      border-radius: 8px;
+      height: 36px;
+      width: auto;
       display: flex;
       align-items: center;
-      justify-content: center;
-      font-size: 1rem;
+    }
+
+    .nav-brand .brand-icon img {
+      height: 36px;
+      width: auto;
     }
 
     .nav-brand h1 {
@@ -557,7 +569,7 @@
   <div id="ageGate">
     <div class="age-card">
       <button class="close-btn" onclick="window.location.href='https://google.com'">✕</button>
-      <div class="logo-icon">🎥</div>
+      <div class="logo-icon"><img src="logo.png" alt="Empire Video Chat Logo" /></div>
       <h2>Empire Video</h2>
       <p>Empire Video connects you with random strangers via live video. This platform is intended for users <strong>18 years of age or older</strong>. By continuing, you confirm that you meet this requirement and agree to our <a href="tos.html" target="_blank" style="color:#a78bfa;">Terms of Service</a>.</p>
       <button class="confirm-btn" onclick="closeAgeGate()">I am 18 or older — Enter</button>
@@ -567,7 +579,7 @@
 
   <nav>
     <div class="nav-brand">
-      <div class="brand-icon">🎥</div>
+      <div class="brand-icon"><img src="logo.png" alt="Empire Video Chat Logo" /></div>
       <h1>Empire Video</h1>
       <div class="online-count">
         <div class="online-dot"></div>
