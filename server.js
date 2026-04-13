@@ -6,7 +6,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: 'https://videochat-6af.pages.dev',
+    origin: 'https://empire-ahb.pages.dev',
     methods: ['GET', 'POST']
   }
 });
