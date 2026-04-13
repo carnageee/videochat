@@ -6,7 +6,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: 'https://empirevideo.netlify.app',
+    origin: 'https://videochat-6af.pages.dev',
     methods: ['GET', 'POST']
   }
 });
