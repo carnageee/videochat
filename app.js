@@ -300,6 +300,11 @@ socket.on('chat', ({ text }) => {
   addMessage(text, 'stranger');
 });
 
+// Online user count
+socket.on('online_count', (count) => {
+  document.getElementById('onlineCount').textContent = count + (count === 1 ? ' online' : ' online');
+});
+
 // If socket reconnects (e.g. phone woke from sleep), reset state so user can re-pair
 socket.on('connect', () => {
   if (myRoom) {

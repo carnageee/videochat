@@ -45,8 +45,13 @@ async function getTurnCredentials() {
 
 const waitingQueue = [];
 
+function broadcastCount() {
+  io.emit('online_count', io.engine.clientsCount);
+}
+
 io.on('connection', (socket) => {
   console.log('Someone connected:', socket.id);
+  broadcastCount();
 
   socket.on('looking', async () => {
     // Remove self from queue in case of re-queue (e.g. Next button)
@@ -96,6 +101,7 @@ io.on('connection', (socket) => {
       socket.to(room).emit('stranger_left');
     });
     console.log('Someone disconnected:', socket.id);
+    broadcastCount();
   });
 
 });
