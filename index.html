@@ -355,8 +355,22 @@
       -webkit-text-fill-color: transparent;
     }
 
+    .share-link-text {
+      flex: 1;
+      font-size: 0.78rem;
+      color: var(--text);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.3rem 0.7rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+
     #copyCodeBtn {
-      margin-left: auto;
+      flex-shrink: 0;
       background: var(--surface2);
       border: 1px solid var(--border);
       color: var(--text);
@@ -851,9 +865,9 @@
 
       <!-- Room info bar (shown after joining) -->
       <div id="groupRoomInfo">
-        <span class="room-code-label">Room code:</span>
-        <span class="room-code-value" id="displayedRoomCode"></span>
-        <button id="copyCodeBtn">Copy</button>
+        <span class="room-code-label">Invite link:</span>
+        <span class="share-link-text" id="shareLinkDisplay"></span>
+        <button id="copyCodeBtn">Copy Link</button>
       </div>
 
       <!-- Setup panel (shown before joining) -->
@@ -923,8 +937,16 @@
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <script src="app.js"></script>
   <script>
+    // If the page was opened with ?room=CODE, switch to Group tab immediately
+    // so the user sees the right context even before dismissing the age gate.
+    (function () {
+      const code = new URLSearchParams(location.search).get('room');
+      if (code) switchMode('group');
+    })();
+
     function closeAgeGate() {
       document.getElementById('ageGate').style.display = 'none';
+      handlePostAgeGate(); // auto-join if opened via a share link
     }
   </script>
 </body>

@@ -121,8 +121,8 @@ io.on('connection', (socket) => {
       socket.emit('room-error', { message: 'Room not found. Check the code and try again.' });
       return;
     }
-    if (room.size >= 6) {
-      socket.emit('room-error', { message: 'Room is full (max 6 participants).' });
+    if (room.size >= 12) {
+      socket.emit('room-error', { message: 'Room is full (max 12 participants).' });
       return;
     }
     const existingPeers = [...room];

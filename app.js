@@ -11,6 +11,9 @@ const sendBtn         = document.getElementById('sendBtn');
 
 const socket = io('https://videochat-production-5929.up.railway.app');
 
+// Room code embedded in the URL when someone opens a share link (?room=XXXXXX)
+const urlRoomCode = new URLSearchParams(window.location.search).get('room');
+
 // ── Shared state ──
 let localStream    = null;
 let currentMode    = 'random'; // 'random' | 'group'
@@ -418,6 +421,8 @@ function cleanupGroupRoom() {
   document.getElementById('localGroupPlaceholder').style.display = 'flex';
 
   myGroupRoom = null;
+  history.replaceState({}, '', location.pathname); // remove ?room= from URL
+  document.getElementById('shareLinkDisplay').textContent = '';
   document.getElementById('groupRoomInfo').style.display = 'none';
   document.getElementById('groupGrid').style.display = 'none';
   document.getElementById('groupSetup').style.display = 'flex';
@@ -430,7 +435,12 @@ function cleanupGroupRoom() {
 
 function onRoomReady(roomCode) {
   myGroupRoom = roomCode;
-  document.getElementById('displayedRoomCode').textContent = roomCode;
+
+  // Update the URL so the current user can copy it from the address bar too
+  const shareUrl = location.origin + location.pathname + '?room=' + roomCode;
+  history.replaceState({}, '', '?room=' + roomCode);
+
+  document.getElementById('shareLinkDisplay').textContent = shareUrl;
   document.getElementById('groupRoomInfo').style.display = 'flex';
   document.getElementById('groupSetup').style.display = 'none';
   document.getElementById('groupGrid').style.display = 'grid';
@@ -480,8 +490,9 @@ document.getElementById('leaveRoomBtn').addEventListener('click', () => {
 });
 
 document.getElementById('copyCodeBtn').addEventListener('click', () => {
-  const code = document.getElementById('displayedRoomCode').textContent;
-  navigator.clipboard.writeText(code).then(() => {
+  const link = document.getElementById('shareLinkDisplay').textContent;
+  if (!link) return;
+  navigator.clipboard.writeText(link).then(() => {
     const btn = document.getElementById('copyCodeBtn');
     const orig = btn.textContent;
     btn.textContent = 'Copied!';
@@ -613,3 +624,13 @@ socket.on('connect', () => {
     addMessage('Connection was lost. Please rejoin the room.', 'system');
   }
 });
+
+// Called by closeAgeGate() in index.html after the user confirms their age.
+// If the page was opened with ?room=CODE, auto-switch to group mode and join.
+function handlePostAgeGate() {
+  if (urlRoomCode) {
+    switchMode('group');
+    document.getElementById('roomCodeInput').value = urlRoomCode.toUpperCase();
+    document.getElementById('joinRoomBtn').click();
+  }
+}
