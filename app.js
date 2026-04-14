@@ -56,14 +56,14 @@ function addMessage(text, type = 'system') {
 
 // ── Mute toggle ──
 
-const MIC_ON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+const MIC_ON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none">
   <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
   <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
   <line x1="12" y1="19" x2="12" y2="23"/>
   <line x1="8" y1="23" x2="16" y2="23"/>
 </svg>`;
 
-const MIC_OFF_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+const MIC_OFF_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none">
   <line x1="1" y1="1" x2="23" y2="23"/>
   <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/>
   <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/>
@@ -79,22 +79,6 @@ muteBtn.addEventListener('click', () => {
   muteBtn.classList.toggle('muted', micMuted);
   muteBtn.title = micMuted ? 'Unmute microphone' : 'Mute microphone';
 });
-
-function enableMuteBtn() {
-  muteBtn.disabled = false;
-  micMuted = false;
-  muteBtn.innerHTML = MIC_ON_SVG;
-  muteBtn.classList.remove('muted');
-  muteBtn.title = 'Mute microphone';
-}
-
-function disableMuteBtn() {
-  muteBtn.disabled = true;
-  micMuted = false;
-  muteBtn.innerHTML = MIC_ON_SVG;
-  muteBtn.classList.remove('muted');
-  muteBtn.title = 'Mute / Unmute microphone';
-}
 
 // ── Mode switching ──
 
@@ -220,7 +204,9 @@ function resetToIdle() {
   startBtn.disabled      = false;
   startBtn.textContent   = 'Start';
   status.textContent     = 'Press Start to find a stranger';
-  disableMuteBtn();
+  micMuted = false;
+  muteBtn.innerHTML = MIC_ON_SVG;
+  muteBtn.classList.remove('muted');
 }
 
 nextBtn.addEventListener('click', () => {
@@ -270,7 +256,6 @@ socket.on('paired', async ({ room, isInitiator, iceServers }) => {
   sendBtn.disabled       = false;
   disconnectBtn.disabled = false;
   reportBtn.disabled     = false;
-  enableMuteBtn();
   addMessage('You are now connected to a stranger!', 'system');
 
   peerConnection = createPeerConnection(room);
@@ -340,7 +325,9 @@ socket.on('stranger_left', () => {
   reportBtn.disabled     = true;
   chatInput.disabled     = true;
   sendBtn.disabled       = true;
-  disableMuteBtn();
+  micMuted = false;
+  muteBtn.innerHTML = MIC_ON_SVG;
+  muteBtn.classList.remove('muted');
 
   addMessage('Stranger has disconnected.', 'system');
 });
@@ -477,7 +464,9 @@ function cleanupGroupRoom() {
   document.getElementById('roomCodeInput').value = '';
   chatInput.disabled = true;
   sendBtn.disabled   = true;
-  disableMuteBtn();
+  micMuted = false;
+  muteBtn.innerHTML = MIC_ON_SVG;
+  muteBtn.classList.remove('muted');
   status.textContent = 'Create or join a group room';
 }
 
@@ -495,7 +484,6 @@ function onRoomReady(roomCode) {
   document.getElementById('leaveRoomBtn').disabled = false;
   chatInput.disabled = false;
   sendBtn.disabled   = false;
-  enableMuteBtn();
   status.textContent = 'In room: ' + roomCode;
 
   // Show local video in the group grid
