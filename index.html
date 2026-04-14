@@ -710,6 +710,13 @@
       color: white;
       border: none;
       box-shadow: 0 4px 16px var(--purple-glow);
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
     }
 
     #muteBtn:hover:not(:disabled) {
@@ -944,7 +951,14 @@
 
   <div class="controls">
     <span class="status-pill" id="status">Press Start to find a stranger</span>
-    <button id="muteBtn" disabled>🎤 Mic On</button>
+    <button id="muteBtn" disabled title="Mute / Unmute microphone">
+      <svg id="muteBtnIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+        <line x1="12" y1="19" x2="12" y2="23"/>
+        <line x1="8" y1="23" x2="16" y2="23"/>
+      </svg>
+    </button>
 
     <!-- Random controls -->
     <div id="randomControls" style="display:contents;">
