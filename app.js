@@ -8,6 +8,7 @@ const status          = document.getElementById('status');
 const chatMessages    = document.getElementById('chatMessages');
 const chatInput       = document.getElementById('chatInput');
 const sendBtn         = document.getElementById('sendBtn');
+const muteBtn         = document.getElementById('muteBtn');
 
 const socket = io('https://videochat-production-5929.up.railway.app');
 
@@ -17,6 +18,7 @@ const urlRoomCode = new URLSearchParams(window.location.search).get('room');
 // ── Shared state ──
 let localStream    = null;
 let currentMode    = 'random'; // 'random' | 'group'
+let micMuted       = false;
 
 // ── Random mode state ──
 let peerConnection    = null;
@@ -50,6 +52,30 @@ function addMessage(text, type = 'system') {
   msg.textContent = text;
   chatMessages.appendChild(msg);
   chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// ── Mute toggle ──
+
+muteBtn.addEventListener('click', () => {
+  if (!localStream) return;
+  micMuted = !micMuted;
+  localStream.getAudioTracks().forEach(track => { track.enabled = !micMuted; });
+  muteBtn.textContent = micMuted ? '🔇 Muted' : '🎤 Mic On';
+  muteBtn.classList.toggle('muted', micMuted);
+});
+
+function enableMuteBtn() {
+  muteBtn.disabled = false;
+  micMuted = false;
+  muteBtn.textContent = '🎤 Mic On';
+  muteBtn.classList.remove('muted');
+}
+
+function disableMuteBtn() {
+  muteBtn.disabled = true;
+  micMuted = false;
+  muteBtn.textContent = '🎤 Mic On';
+  muteBtn.classList.remove('muted');
 }
 
 // ── Mode switching ──
@@ -176,6 +202,7 @@ function resetToIdle() {
   startBtn.disabled      = false;
   startBtn.textContent   = 'Start';
   status.textContent     = 'Press Start to find a stranger';
+  disableMuteBtn();
 }
 
 nextBtn.addEventListener('click', () => {
@@ -225,6 +252,7 @@ socket.on('paired', async ({ room, isInitiator, iceServers }) => {
   sendBtn.disabled       = false;
   disconnectBtn.disabled = false;
   reportBtn.disabled     = false;
+  enableMuteBtn();
   addMessage('You are now connected to a stranger!', 'system');
 
   peerConnection = createPeerConnection(room);
@@ -294,6 +322,7 @@ socket.on('stranger_left', () => {
   reportBtn.disabled     = true;
   chatInput.disabled     = true;
   sendBtn.disabled       = true;
+  disableMuteBtn();
 
   addMessage('Stranger has disconnected.', 'system');
 });
@@ -430,6 +459,7 @@ function cleanupGroupRoom() {
   document.getElementById('roomCodeInput').value = '';
   chatInput.disabled = true;
   sendBtn.disabled   = true;
+  disableMuteBtn();
   status.textContent = 'Create or join a group room';
 }
 
@@ -447,6 +477,7 @@ function onRoomReady(roomCode) {
   document.getElementById('leaveRoomBtn').disabled = false;
   chatInput.disabled = false;
   sendBtn.disabled   = false;
+  enableMuteBtn();
   status.textContent = 'In room: ' + roomCode;
 
   // Show local video in the group grid
