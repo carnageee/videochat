@@ -43,7 +43,16 @@ async function getTurnCredentials() {
   }
 }
 
+// ── 1-on-1 random pairing ──
 const waitingQueue = [];
+
+// ── Group rooms ──
+// roomCode -> Set of socket IDs
+const groupRooms = new Map();
+
+function generateRoomCode() {
+  return Math.random().toString(36).substr(2, 6).toUpperCase();
+}
 
 function broadcastCount() {
   io.emit('online_count', io.engine.clientsCount);
@@ -53,12 +62,12 @@ io.on('connection', (socket) => {
   console.log('Someone connected:', socket.id);
   broadcastCount();
 
+  // ── Random chat events ──
+
   socket.on('looking', async () => {
-    // Remove self from queue in case of re-queue (e.g. Next button)
     const selfIndex = waitingQueue.indexOf(socket);
     if (selfIndex !== -1) waitingQueue.splice(selfIndex, 1);
 
-    // Try to pair with the first person in the queue
     if (waitingQueue.length > 0) {
       const partner = waitingQueue.shift();
       const room = partner.id + '#' + socket.id;
@@ -73,14 +82,12 @@ io.on('connection', (socket) => {
 
       console.log('Paired:', room);
     } else {
-      // Nobody waiting yet — join the queue
       waitingQueue.push(socket);
       socket.emit('waiting');
       console.log('Waiting for a partner... Queue size:', waitingQueue.length);
     }
-  }); // end of looking event
+  });
 
-  // Relay signaling messages between the two users
   socket.on('signal', ({ room, data }) => {
     socket.to(room).emit('signal', data);
   });
@@ -93,13 +100,96 @@ io.on('connection', (socket) => {
     console.log(`REPORT filed — room: ${room}, reporter: ${socket.id}, time: ${new Date().toISOString()}`);
   });
 
+  // ── Group room events ──
+
+  socket.on('create-room', async ({ roomCode: requestedCode } = {}) => {
+    let code = (requestedCode || '').trim().toUpperCase() || generateRoomCode();
+    if (groupRooms.has(code)) {
+      socket.emit('room-error', { message: 'Room code already in use. Try a different one.' });
+      return;
+    }
+    groupRooms.set(code, new Set([socket.id]));
+    socket.join('group:' + code);
+    socket.emit('room-created', { roomCode: code });
+    console.log('Group room created:', code, 'by', socket.id);
+  });
+
+  socket.on('join-room', async ({ roomCode }) => {
+    const code = (roomCode || '').trim().toUpperCase();
+    const room = groupRooms.get(code);
+    if (!room) {
+      socket.emit('room-error', { message: 'Room not found. Check the code and try again.' });
+      return;
+    }
+    if (room.size >= 6) {
+      socket.emit('room-error', { message: 'Room is full (max 6 participants).' });
+      return;
+    }
+    const existingPeers = [...room];
+    room.add(socket.id);
+    socket.join('group:' + code);
+
+    const iceServers = await getTurnCredentials();
+
+    // Tell the new joiner about who is already in the room
+    socket.emit('room-joined', { roomCode: code, peers: existingPeers, iceServers });
+
+    // Tell existing peers that someone new joined
+    existingPeers.forEach(peerId => {
+      io.to(peerId).emit('group-peer-joined', { peerId: socket.id, iceServers });
+    });
+
+    console.log('Joined group room:', code, socket.id, '— existing peers:', existingPeers.length);
+  });
+
+  // Route a WebRTC signal to a specific peer
+  socket.on('group-signal', ({ roomCode, targetId, data }) => {
+    io.to(targetId).emit('group-signal', { fromId: socket.id, data });
+  });
+
+  socket.on('group-chat', ({ roomCode, text }) => {
+    socket.to('group:' + roomCode).emit('group-chat', { text, fromId: socket.id });
+  });
+
+  socket.on('leave-room', ({ roomCode }) => {
+    const code = (roomCode || '').toUpperCase();
+    const room = groupRooms.get(code);
+    if (room && room.has(socket.id)) {
+      room.delete(socket.id);
+      socket.to('group:' + code).emit('group-peer-left', { peerId: socket.id });
+      socket.leave('group:' + code);
+      if (room.size === 0) {
+        groupRooms.delete(code);
+        console.log('Group room deleted (empty):', code);
+      }
+    }
+  });
+
+  // ── Disconnect ──
+
   socket.on('disconnect', () => {
+    // Remove from 1-on-1 waiting queue
     const idx = waitingQueue.indexOf(socket);
     if (idx !== -1) waitingQueue.splice(idx, 1);
-    // Notify the other person in the room
+
+    // Notify peers in all rooms
     socket.rooms.forEach(room => {
-      socket.to(room).emit('stranger_left');
+      if (room === socket.id) return; // skip own socket room
+      if (room.startsWith('group:')) {
+        // Group room — notify remaining peers
+        const code = room.slice(6);
+        socket.to(room).emit('group-peer-left', { peerId: socket.id });
+        const gRoom = groupRooms.get(code);
+        if (gRoom) {
+          gRoom.delete(socket.id);
+          if (gRoom.size === 0) groupRooms.delete(code);
+        }
+      } else {
+        // 1-on-1 room
+        socket.to(room).emit('stranger_left');
+      }
     });
+
     console.log('Someone disconnected:', socket.id);
     broadcastCount();
   });
